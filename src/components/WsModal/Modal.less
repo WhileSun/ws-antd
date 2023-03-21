@@ -1,0 +1,53 @@
+.wsmodel-wrap-style {
+  overflow: hidden;
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(50, 50, 50, .3);
+    // background: #4CAF50;
+    border-radius: 4px;
+  }
+
+  // .ant-modal {
+  //   margin-top: 12px;
+  //   top: 0px !important;
+  //   padding: 0px !important;
+  // }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 8px;
+  }
+
+  .ant-modal-body {
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 20px;
+    min-height: 80px;
+  }
+}
+
+.wsmodal-wrap-fullscreen {
+  margin: 0px !important;
+
+  .ant-modal {
+    overflow: hidden;
+    width: auto !important;
+  }
+
+  .ant-modal-body {
+    max-height: none !important;
+    flex: 1;
+  }
+
+  .ant-modal-content {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 24px);
+    width: 100%;
+  }
+
+  .react-draggable {
+    transform: translate(0px, 0px) !important;
+  }
+}
