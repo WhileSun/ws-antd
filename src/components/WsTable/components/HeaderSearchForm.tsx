@@ -1,12 +1,11 @@
 import React from 'react';
 import { useMemo } from 'react';
-import { Form, Input, Select, DatePicker, Button, Divider, Row, Col} from 'antd';
+import { Form, Input, Select, DatePicker, Space, Divider, Row, Col} from 'antd';
 import { SearchField, WsTableSearchProps,searchConfig } from '../types'
 import { paramIsset} from '../utils/tools';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
-
 
 const HeaderSearchForm: React.FC<WsTableSearchProps> = (props) => {
   console.log("initSearchForm");
@@ -14,11 +13,10 @@ const HeaderSearchForm: React.FC<WsTableSearchProps> = (props) => {
   const searchConfig:searchConfig = paramIsset(props.searchConfig,{});
   const formRef = props.formRef;
   const handleFormSubmit = paramIsset(props.handleFormSubmit, () => { })
-  
   const config = useMemo(()=>{
     let conf: searchConfig = {}
     conf.gutter = paramIsset(searchConfig.gutter,[16,16]);
-    conf.colSize = paramIsset(searchConfig.colSize,{xl:6})
+    conf.colSize = paramIsset(searchConfig.colSize,{})
     conf.labelWidth = paramIsset(searchConfig.labelWidth,undefined)
     return conf
   },[searchConfig]);
@@ -40,7 +38,7 @@ const HeaderSearchForm: React.FC<WsTableSearchProps> = (props) => {
 };
 
 const initFields = (field: SearchField, index: number, config:searchConfig): React.ReactElement => {
-  let htmls = (<></>);
+  let htmls:React.ReactNode = (<></>);
   let styles: React.CSSProperties = {};
   let fieldName = field.name;
   if (field.width !== undefined) {
@@ -75,9 +73,9 @@ const initFields = (field: SearchField, index: number, config:searchConfig): Rea
     let keyName = 'selectInput_' + index;
     let keys = Object.keys(field.listData);
     htmls = (
-      <Input.Group compact style={{display:'flex'}}>
+      <Space.Compact style={{display:'flex'}}>
         <Form.Item name={[keyName, 'key']} noStyle initialValue={keys[0]}>
-          <Select>
+          <Select style={{width:120,...styles}}>
             {keys.map((selectKey, selectIndex) => {
               return (
                 <Option value={selectKey} key={selectIndex.toString()}>
@@ -88,16 +86,16 @@ const initFields = (field: SearchField, index: number, config:searchConfig): Rea
           </Select>
         </Form.Item>
         <Form.Item name={[keyName, 'val']} noStyle>
-          <Input style={{flex:1}} placeholder="搜索" />
+          <Input style={{flex:1}} placeholder="搜索内容"/>
         </Form.Item>
-      </Input.Group>
+      </Space.Compact>
     );
   } else if (field.type === 'dateRange') {
     fieldName = 'dateRange_' + field.name;
-    htmls = <RangePicker style={{display:'flex'}}/>;
+    htmls = <RangePicker style={{display:'flex',...styles}}/>;
   } else {
     if (field.render !== undefined) {
-      htmls = field.render;
+      htmls = field.render();
     }
   }
   if (field.oneShowMode === true) {

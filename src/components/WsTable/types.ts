@@ -10,7 +10,7 @@ export interface WsTableProps {
     /** table ref */
     table?:WsTableInstance,
     /** 列表column字段 */
-    th: ColumnField<any>[],
+    th?: ColumnField<any>[],
     /** 全局保存form查询字段 name table名称需防止重名 */
     storeModel?: { params: { [key: string]: any }, setParams: React.Dispatch<any>, name: string },
     /** 尺寸 */
@@ -20,9 +20,11 @@ export interface WsTableProps {
     /** 展示方式fixed:固定高度;fluid:不固定 */
     display?: 'fixed' | 'fluid',
     /** 接口api promise */
-    api?: Function,
+    api?: (params:{[key:string]:any})=>Promise<ApiResp>,
+    /** 接口 selfApi 自己处理数据 优先*/
+    selfApi?:(params:{[key:string]:any})=>ApiResp,
     /** 模式 normal 常规 model 弹出框 */
-    mode?: 'normal' | 'modal',
+    showMode?: 'normal' | 'modal',
     /** modal宽度 */
     width?: number,
     /** modal标题 */
@@ -36,13 +38,11 @@ export interface WsTableProps {
     /** fixed展示，底部的高度 */
     footHeight?: number,
     /** table的ID */
-    divId?: string,
+    tableId?: string,
     /** 自定义按钮 */
     btns?: HeaderWsButtonProps[] ,
     /** 自定义tool */
     toolbars?: Array<{align:'left'|'right', render: ()=>React.ReactElement }>,
-    /** 直接赋值 */
-    data?: Array<any>,
     /** 搜索的参数 */
     store?: { [key: string]: any },
     /** 对本地数据筛选 */
@@ -56,7 +56,7 @@ export interface WsTableProps {
     /** 弹出框是否显示 */
     modalShow?: boolean
     /** 搜索框 */
-    searchs: SearchField[],
+    searchs?: SearchField[],
     /** searchs 组件全局配置 */
     searchConfig?: searchConfig,
 }
@@ -93,7 +93,7 @@ export interface SearchField extends FormItemProps {
     defaultValue?: any,
     /** 自定义form组建数据传输 */
     listData?: any,
-    render?: React.ReactElement,
+    render?: ()=>React.ReactNode,
 }
 
 

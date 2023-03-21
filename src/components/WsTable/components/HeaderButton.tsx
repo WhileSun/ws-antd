@@ -1,3 +1,4 @@
+import React from 'react';
 import { paramIsset } from '../utils/tools';
 import WsButton from '../../WsButton';
 import type { HeaderWsButtonProps,HeaderButtonProps } from '../types';

@@ -8,7 +8,7 @@ const filterIndex = (record:any, dataIndex:string, value:string) => {
         .toLowerCase()
         .includes(value.toLowerCase());
     if (!res && record.children) {
-        if (record.children.some(item => item[dataIndex].toString()
+        if (record.children.some((item:{[key:string]:any}) => item[dataIndex].toString()
             .toLowerCase()
             .includes(value.toLowerCase()))) {
             res = true;

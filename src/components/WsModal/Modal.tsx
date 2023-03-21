@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef} from 'react';
 import { Modal, Button } from 'antd';
 import { ArrowsAltOutlined, ShrinkOutlined } from '@ant-design/icons';
 import type { DraggableData, DraggableEvent } from 'react-draggable';
@@ -42,10 +42,13 @@ const WsModal = (props: WsModalProps) => {
   };
 
   //model拖拉
-  const draggleRef = React.createRef();
+  const draggleRef = useRef<HTMLDivElement>(null);
   const handleModelMove = (event: DraggableEvent, uiData: DraggableData) => {
     const { clientWidth, clientHeight } = window?.document?.documentElement;
     const targetRect = draggleRef?.current?.getBoundingClientRect();
+    if (!targetRect) {
+      return;
+    }
     updateModelState({
       modelMoveBounds: {
         left: -targetRect?.left + uiData?.x,
@@ -75,7 +78,7 @@ const WsModal = (props: WsModalProps) => {
     }
   }
 
-  const toggleFullScreen = (e) => {
+  const toggleFullScreen = (e:any) => {
     setFullStatus(!fullStatus);
   }
 

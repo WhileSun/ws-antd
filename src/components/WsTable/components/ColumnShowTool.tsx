@@ -51,7 +51,7 @@ const ColumnShowTool:React.FC<any> = (props) => {
   return (
     <>
       <Dropdown
-        overlay={menu}
+        dropdownRender={()=>{return menu}}
         trigger={['click']}
       >
         {solt}

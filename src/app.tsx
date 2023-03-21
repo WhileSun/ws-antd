@@ -4,8 +4,15 @@ import { Input } from "antd";
 const App = () => {
     return (<>
         <WsTable
+        // searchConfig={{colSize:{xl:8}}}
         searchs={[
             {type:"input",label:"张三",name:"username"},
+            // {type:"input",label:"张三",name:"username"},
+            // {type:"input",label:"张三",name:"username"},
+            // {type:"dateRange",label:"张三",name:"username"},
+            // {type:"selectInput",name:"selectInput",listData:{'name':'名称哈','name21':'名成哈哈哈哈'}},
+            // {type:"select",label:"张三",name:"select",listData:{'name':'名称哈哈哈哈哈'},width:200},
+            // {type:"html",label:"张三",name:"username",render:()=>{return (123123)}},
         ]}
         size = "small"
         th = {[

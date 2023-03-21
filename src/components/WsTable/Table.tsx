@@ -1,8 +1,8 @@
 import { Table, Form, message, Button, Tooltip, Pagination } from 'antd';
 import { SettingOutlined, ReloadOutlined, SearchOutlined, MinusSquareOutlined, PlusSquareOutlined, OrderedListOutlined } from '@ant-design/icons';
 import { WsTableProps, ApiResp } from './types';
-import React, { useMemo, useState, useEffect, forwardRef,useImperativeHandle } from 'react';
-import { paramIsset, getRandStr, parseFormParamsTools, toTreeTools, arrayColumnTools,filterNameTools } from './utils/tools';
+import React, { useMemo, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { paramIsset, getRandStr, parseFormParamsTools, toTreeTools, arrayColumnTools, filterNameTools } from './utils/tools';
 import HeaderSearchForm from './components/HeaderSearchForm';
 import ColumnShowTool from './components/ColumnShowTool';
 import HeaderButton from './components/HeaderButton';
@@ -11,32 +11,20 @@ import initShowColumnFunc from './func/initShowColumn';
 import WsModal from '../WsModal';
 import './Table.less';
 
-const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,ref) => {
+const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (props, ref) => {
   const [formRef] = Form.useForm();
-
-  const config = useMemo(() => {
-    console.log("config");
-    let param: WsTableProps = { th: [], searchs: [] };
-    param.th = paramIsset(props.th, []);
-    param.size = paramIsset(props.size, 'small');
-    param.rowKey = paramIsset(props.rowKey, 'id');
-    param.display = paramIsset(props.display, 'fluid');
-    param.api = paramIsset(props.api, new Promise((vals) => { }));
-    param.mode = paramIsset(props.mode, 'normal');
-    param.checkbox = paramIsset(props.checkbox, false);
-    param.treeTable = paramIsset(props.treeTable, false);
-    param.footHeight = paramIsset(props.footHeight, 43);
-    param.divId = paramIsset(props.divId, getRandStr('table'));
-
-    param.data = paramIsset(props.data, []);
-    param.storeModel = props.storeModel;
-    param.otherFormParams = props.otherFormParams;
-    param.onLocalFilter = props.onLocalFilter;
-
-    param.page = paramIsset(props.page, 1);
-    param.pageSize = paramIsset(props.pageSize, 50);
-    return param;
-  }, [props]);
+  const {
+    size = "small",
+    rowKey = "id",
+    display = "fluid",
+    showMode = "normal",
+    checkbox = false,
+    treeTable = false,
+    tableId = getRandStr('table'),
+    page = 1,
+    pageSize = 50,
+    otherFormParams = {},
+  } = props;
 
   useEffect(() => {
     console.log('storeModel', props.storeModel?.params);
@@ -52,18 +40,18 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
   const [rowKeys, setRowKeys] = useState<Array<React.Key>>([]); //当前所有节点ID
   const [treeTableshow, setTreeTableshow] = useState(true);  //是否是树形表
   //列设置
-  const initShowColumn = useMemo(() => { return initShowColumnFunc(config.th) }, []); //表格字段的字段和值
+  const initShowColumn = useMemo(() => { return initShowColumnFunc(!props.th ?[]:props.th) }, []); //表格字段的字段和值
   const [showColumns, setShowColumns] = useState(initShowColumn.allKeys); //表格展示的字段,默认全部
   const [searchFormShow, setSearchFormShow] = useState(true); //是否显示搜索框
 
   //table column等配置信息
   const tableSetting = useMemo(() => {
-    return initColumnFunc(config.th, showColumns)
+    return initColumnFunc(!props.th ?[]:props.th, showColumns)
   }, [showColumns]);
 
 
   /** merge defalut params and other params*/
-  const defaultFormParams = { 'pageSize': config.pageSize, 'page': config.page, ...config.otherFormParams };
+  const defaultFormParams = { 'pageSize': pageSize, 'page': page, otherFormParams };
   const [formParams, setFormParams] = useState<{ [key: string]: any }>(defaultFormParams);
 
   /**  set form params */
@@ -86,7 +74,7 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
 
   /**  set StoreModel params */
   const setStoreModelParamsFunc = (values: { [key: string]: any }) => {
-    config.storeModel?.setParams({ ...config.storeModel?.params, [config.storeModel.name]: values });
+    props.storeModel?.setParams({ ...props.storeModel?.params, [props.storeModel.name]: values });
   }
 
   /** change page */
@@ -109,8 +97,8 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
   const handleFormSubmit = (values: { [key: string]: any }) => {
     console.log('handleFormSubmit');
     /** 针对本地数据筛选，一般针对tree table使用 */
-    if (config.onLocalFilter) {
-      config.onLocalFilter(parseFormParamsTools(values))
+    if (props.onLocalFilter) {
+      props.onLocalFilter(parseFormParamsTools(values))
     } else {
       setStoreModelParamsFunc(values);
       let params = setFormParamsFunc(parseFormParamsTools(values), 'submit');
@@ -126,41 +114,52 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
   /** trans table data */
   /** key need parent_id */
   const transTableDataFunc = (data: Array<any>) => {
-    if (config.treeTable) {
-      setRowKeys(arrayColumnTools(data, "id") as Array<React.Key>);
+    if (treeTable) {
+      setRowKeys(arrayColumnTools(data, rowKey) as Array<React.Key>);
       return toTreeTools(data);
     }
     return data;
   }
 
+  /** set data */
+  const setDataFunc = (resp: ApiResp) => {
+    setApiresp(resp);
+    setApiData(transTableDataFunc(resp.data));
+  }
+
   /** get data  */
   const getData = async (apiParams = {}) => {
     setLoading(true);
-    if (config.api === undefined) {
+    if (props.selfApi !== undefined) {
+      let data = props.selfApi.call(this, apiParams);
+      setDataFunc(data);
       setLoading(false);
+      return;
+    }
+
+    if (props.api !== undefined) {
+      let api: Promise<ApiResp> = props.api.call(this, apiParams)
+      api.then(function (resp) {
+        setDataFunc(resp)
+        setLoading(false);
+        if (resp.code != 0) {
+          message.error(resp.msg);
+        }
+      }).catch(function (error) {
+        setLoading(false);
+        message.error("列表获取异常，请联系管理员处理！");
+        console.log('error', error);
+      });
       return
     }
-    let api: Promise<any> = config.api.call(this, apiParams)
-    api.then(function (resp) {
-      console.log('resp', resp);
-      resp.total = 1000;
-      setApiresp(resp);
-      setApiData(transTableDataFunc(resp.data));
-      setLoading(false);
-      if (resp.code != 0) {
-        message.error(resp.msg);
-      }
-    }).catch(function (error) {
-      setLoading(false);
-      message.error("列表获取异常，请联系管理员处理！");
-      console.log('error', error);
-    });
+
+    setLoading(false); 
   };
 
 
   useEffect(() => {
     /** 初始化查询参数，开启storeModel会加载历史查询数据 */
-    let initParams = config.storeModel?.params[config.storeModel.name]
+    let initParams = props.storeModel?.params[props.storeModel.name]
     let params = setFormParamsFunc(parseFormParamsTools(initParams), 'init');
     getData(params);
     //初始化设置字段数据
@@ -168,21 +167,21 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
   }, []);
 
   /** table 映射func*/
-  if(props.table !== undefined){
+  if (props.table !== undefined) {
     var tableInstance = props.table;
     tableInstance.reload = () => { console.log('reload'); handleTableReload(); };
     tableInstance.getCheckedIds = () => { return checkedIds; };
     tableInstance.getDataList = () => { return apiresp.data };
-    tableInstance.filterName = (dataIndex:string, val:any) => {
+    tableInstance.filterName = (dataIndex: string, val: any) => {
       if (val) {
         setApiData(filterNameTools(transTableDataFunc(apiresp.data), dataIndex, val))
       } else {
         setApiData(transTableDataFunc(apiresp.data))
       }
     };
-    useImperativeHandle(ref,()=>tableInstance);
+    useImperativeHandle(ref, () => tableInstance);
   }
-  
+
   //header Form
   const headerSearchForm = useMemo(() => {
     return (
@@ -200,7 +199,7 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
 
   // header toolbar left 
   const headerToolbarLeft = useMemo(() => {
-    const fieldLen = Object.keys(props.searchs).length;
+    const fieldLen =!props.searchs ? 0:Object.keys(props.searchs).length;
     return (
       <>
         {props.toolbars !== undefined ? props.toolbars
@@ -257,7 +256,7 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
           }) : ""}
         <HeaderButton btns={props.btns} align="right" />
         <div className='header-toolbar-right-items'>
-          {config.treeTable ?
+          {treeTable ?
             <Tooltip placement="top" title='Tree Table 展开/隐藏'>
               {treeTableshow ? <PlusSquareOutlined style={iconStyle} onClick={treeFunc} /> :
                 <MinusSquareOutlined style={iconStyle} onClick={treeFunc} />}
@@ -274,7 +273,7 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
           <ColumnShowTool
             data={initShowColumn}
             showColumns={showColumns}
-            setShowColumns={(keys:string[]) => { setShowColumns(keys) }}
+            setShowColumns={(keys: string[]) => { setShowColumns(keys) }}
             solt={(<Tooltip placement="top" title='列设置'><SettingOutlined style={{ fontSize: '16px' }} /></Tooltip>)}
           />
         </div>
@@ -285,7 +284,7 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
   const tableHtml = (
     <>
       <div style={{ position: 'relative', height: '100%', minWidth: '0px' }}>
-        <div className={config.divId + " ws-table " + (config.display == 'fixed' ? 'ws-table-fixed' : '')}>
+        <div className={tableId + " ws-table " + (display == 'fixed' ? 'ws-table-fixed' : '')}>
           <div className="ws-table-header">
             <div className="header-search-form" style={{ display: searchFormShow ? "block" : 'none' }}>
               {headerSearchForm}
@@ -297,7 +296,7 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
           </div>
           <div className="ws-table-container">
             <Table
-              rowSelection={config.checkbox ? {
+              rowSelection={checkbox ? {
                 type: 'checkbox',
                 onChange: (selectedRowKeys) => {
                   setCheckedIds(selectedRowKeys);
@@ -306,8 +305,8 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
               columns={tableSetting.columns}
               dataSource={apiData}
               bordered={true}
-              size={config.size}
-              rowKey={config.rowKey}
+              size={size}
+              rowKey={rowKey}
               scroll={tableSetting.tableScroll}
               loading={loading}
               // expandRowByClick={true}
@@ -349,17 +348,17 @@ const InternalWsTable:React.ForwardRefRenderFunction<any,WsTableProps> = (props,
     </>
   );
   //输出样式
-  if (config.mode == 'modal') {
+  if (showMode == 'modal') {
     return (
       <WsModal
         content={tableHtml}
         open={modalShow}
         fixed={true}
         fullVisible={true}
-        footer = {[]}
+        footer={[]}
         width={paramIsset(props.width, 1000)}
         title={paramIsset(props.title, '列表')}
-        onCancel={() => { setModalShow(false);  props.onCancel && props.onCancel() }}
+        onCancel={() => { setModalShow(false); props.onCancel && props.onCancel() }}
       />
     )
   } else {
