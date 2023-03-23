@@ -1,6 +1,6 @@
 {
-  "name": "ws-20230317-test",
-  "version": "0.0.3",
+  "name": "ws-antd",
+  "version": "0.0.1",
   "description": "antd5.x ws-antd",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -38,6 +38,7 @@
   "dependencies": {
     "antd": "^5.3.1",
     "jquery": "^3.6.4",
+    "md-editor-rt": "^2.10.1",
     "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -46,6 +47,11 @@
   "peerDependencies": {
     "react": ">=16.9.0",
     "react-dom": ">=16.9.0"
+  },
+  "homepage": "https://github.com/WhileSun/ws-antd",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WhileSun/ws-antd.git"
   },
   "files": [
     "dist"

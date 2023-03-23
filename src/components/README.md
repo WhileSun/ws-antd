@@ -2,3 +2,4 @@
 react-draggable  
 jquery  
 moment  
+md-editor-rt
