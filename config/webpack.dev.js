@@ -9,7 +9,7 @@ module.exports = merge(commonConfig,{
   devServer: {
     static: path.join(__dirname, 'public'),
     compress: true,
-    port: 3000,
+    port: 3100,
     hot:true,
     open:true,
   },

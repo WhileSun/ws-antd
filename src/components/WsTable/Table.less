@@ -11,8 +11,25 @@
         width: 5px;
         height: 8px;
     }
+
     &-header{
-        padding-bottom: 8px;     
+        padding-bottom: 8px;   
+        .ant-form-item-label{
+            width: auto;
+        }  
+
+        .header-search-form{
+            position: relative;
+            display: flex;
+            &-button{
+                margin-right:8px;
+                display: flex;
+                flex:1;
+                align-items: end;
+                justify-content: flex-end;
+            }
+        }
+
         .header-toolbar{
             margin-top: 20px;
             display: flex;
@@ -23,10 +40,6 @@
                 align-items: center;
                 div{
                     margin-right: 8px;
-                }
-                &-items{
-                    display: flex;
-                    align-items: center;
                 }
             }
             &-right{

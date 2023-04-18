@@ -32,17 +32,16 @@ const filterIndex = (record:any, dataIndex:string, value:string) => {
 const initColumnFunc = (fields: ColumnField<any>[], showColumns: Array<string>) => {
     console.log('initColumn');
     let columns: ColumnField<any>[] = [];
-    var sumWidth = 0;
-    var tableScroll = {};
     for (var i = 0, len = fields.length; i < len; i++) {
         let column: ColumnField<any> = {};
         var d = fields[i];
         let showColumnKey = d.name + '_' + i.toString();
         // 默认超过宽度自动省略
-        column.ellipsis = true;
+        // column.ellipsis = true;
         //赋值重组
         column = d;
         column.dataIndex = d.name;
+        column.ellipsis = true;
         if (showColumns.includes(showColumnKey)) {
             // console.log(d.width);
             // if(d.width instanceof Number){
@@ -51,12 +50,7 @@ const initColumnFunc = (fields: ColumnField<any>[], showColumns: Array<string>) 
             columns.push(column);
         }
     }
-    //防止撑大
-    // columns.push({});
-    // sumWidth += 0;
-    //设置table宽高
-    // tableScroll = { x: sumWidth, y: 5000 };
-    return { 'columns': columns, 'tableScroll': tableScroll };
+    return columns;
 };
 
 export default initColumnFunc;

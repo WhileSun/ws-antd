@@ -1,10 +1,10 @@
 import React from "react";
 import { Table } from "antd";
-import type { TableColumnType, FormItemProps, ColProps } from 'antd';
+import type { TableColumnType, FormItemProps, ColProps,TableProps } from 'antd';
 import { WsButtonProps } from "../WsButton/types";
 
 /** table props */
-export interface WsTableProps {
+export interface WsTableProps<RecordType> extends TableProps<RecordType>{
     /** ref */
     // ref?: React.Ref<HTMLDivElement>,
     /** table ref */
@@ -28,7 +28,7 @@ export interface WsTableProps {
     /** modal宽度 */
     width?: number,
     /** modal标题 */
-    title?: React.ReactNode,
+    // title?: React.ReactNode,
     /** modal返回事件 */
     onCancel?: Function,
     /** 是否开启选择框 */
@@ -42,7 +42,7 @@ export interface WsTableProps {
     /** 自定义按钮 */
     btns?: HeaderWsButtonProps[] ,
     /** 自定义tool */
-    toolbars?: Array<{align:'left'|'right', render: ()=>React.ReactElement }>,
+    toolbars?: Array<{align:'left'|'right', render: ()=>React.ReactNode }>,
     /** 搜索的参数 */
     store?: { [key: string]: any },
     /** 对本地数据筛选 */
@@ -59,6 +59,7 @@ export interface WsTableProps {
     searchs?: SearchField[],
     /** searchs 组件全局配置 */
     searchConfig?: searchConfig,
+
 }
 
 /** table search form */
@@ -67,6 +68,7 @@ export interface WsTableSearchProps {
     searchs?: SearchField[],
     searchConfig?: searchConfig,
     formRef: any,
+    children: React.ReactNode
 }
 
 /** search 父级配置 类似form */

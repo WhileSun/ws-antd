@@ -1,7 +1,7 @@
 {
   "name": "ws-antd",
-  "version": "0.0.1",
-  "description": "antd5.x ws-antd",
+  "version": "0.0.2",
+  "description": "antd5.x ws-antd dev status",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {

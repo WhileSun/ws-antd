@@ -11,7 +11,7 @@ import initShowColumnFunc from './func/initShowColumn';
 import WsModal from '../WsModal';
 import './Table.less';
 
-const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (props, ref) => {
+const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps<any>> = (props, ref) => {
   const [formRef] = Form.useForm();
   const {
     size = "small",
@@ -24,11 +24,17 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
     page = 1,
     pageSize = 50,
     otherFormParams = {},
+    // scroll = { x: 2000 },
+    scroll = {x:0},
+    searchs,
+    searchConfig
   } = props;
 
   useEffect(() => {
     console.log('storeModel', props.storeModel?.params);
   }, [props.storeModel?.params])
+
+
 
   const [apiresp, setApiresp] = useState<ApiResp>({}); //api原生数据
   const [apiData, setApiData] = useState<Array<any>>([]); //api经过内部转化数据
@@ -40,13 +46,13 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
   const [rowKeys, setRowKeys] = useState<Array<React.Key>>([]); //当前所有节点ID
   const [treeTableshow, setTreeTableshow] = useState(true);  //是否是树形表
   //列设置
-  const initShowColumn = useMemo(() => { return initShowColumnFunc(!props.th ?[]:props.th) }, []); //表格字段的字段和值
+  const initShowColumn = useMemo(() => { return initShowColumnFunc(!props.th ? [] : props.th) }, []); //表格字段的字段和值
   const [showColumns, setShowColumns] = useState(initShowColumn.allKeys); //表格展示的字段,默认全部
   const [searchFormShow, setSearchFormShow] = useState(true); //是否显示搜索框
 
   //table column等配置信息
-  const tableSetting = useMemo(() => {
-    return initColumnFunc(!props.th ?[]:props.th, showColumns)
+  const tableColumn = useMemo(() => {
+    return initColumnFunc(!props.th ? [] : props.th, showColumns)
   }, [showColumns]);
 
 
@@ -101,13 +107,18 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
       props.onLocalFilter(parseFormParamsTools(values))
     } else {
       setStoreModelParamsFunc(values);
+      console.log('old_values', values);
       let params = setFormParamsFunc(parseFormParamsTools(values), 'submit');
+      console.log('values', params);
       getData(params);
     }
   };
 
   /** table reload  */
   const handleTableReload = () => {
+    if (loading) {
+      return;
+    }
     getData(formParams);
   }
 
@@ -153,7 +164,7 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
       return
     }
 
-    setLoading(false); 
+    setLoading(false);
   };
 
 
@@ -188,18 +199,25 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
       <>
         <HeaderSearchForm
           formRef={formRef}
-          searchConfig={props.searchConfig}
-          searchs={props.searchs}
+          searchConfig={searchConfig}
+          searchs={searchs}
           handleFormSubmit={handleFormSubmit}
-        />
+        >
+          <div className="header-search-form-button">
+            <Button type="primary" onClick={() => { formRef.submit(); }} style={{ marginRight: '10px' }} loading={loading}>
+              查询
+            </Button>
+            <Button htmlType="button" onClick={handleFormReset} loading={loading}>
+              重置
+            </Button>
+          </div>
+        </HeaderSearchForm >
       </>
     );
-  }, []);
-
+  }, [searchs, searchConfig, loading]);
 
   // header toolbar left 
   const headerToolbarLeft = useMemo(() => {
-    const fieldLen =!props.searchs ? 0:Object.keys(props.searchs).length;
     return (
       <>
         {props.toolbars !== undefined ? props.toolbars
@@ -213,35 +231,13 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
             );
           }) : ""}
         <HeaderButton btns={props.btns} align="left" />
-        {fieldLen > 0 ? (
-          <div className="header-toolbar-left-items">
-            <Button type="primary" onClick={() => { formRef.submit(); }} style={{ marginRight: '10px' }} loading={loading}>
-              查询
-            </Button>
-            <Button htmlType="button" onClick={handleFormReset} loading={loading}>
-              重置
-            </Button>
-          </div>
-        ) : (
-          ''
-        )}
       </>
     );
-  }, [loading])
+  }, [])
 
 
   // header toolbar righttoolbars
   const headerToolbarRight = useMemo(() => {
-    const iconStyle = { fontSize: '16px', marginRight: '15px' };
-    const treeFunc = () => {
-      if (treeTableshow) {
-        setExpandedRowKeys(rowKeys);
-      } else {
-        setExpandedRowKeys([]);
-      }
-      setTreeTableshow(!treeTableshow)
-    }
-
     return (
       <>
         {props.toolbars !== undefined ? props.toolbars
@@ -255,31 +251,51 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
             );
           }) : ""}
         <HeaderButton btns={props.btns} align="right" />
-        <div className='header-toolbar-right-items'>
-          {treeTable ?
-            <Tooltip placement="top" title='Tree Table 展开/隐藏'>
-              {treeTableshow ? <PlusSquareOutlined style={iconStyle} onClick={treeFunc} /> :
-                <MinusSquareOutlined style={iconStyle} onClick={treeFunc} />}
-            </Tooltip>
-            : ""}
-          <Tooltip placement="top" title='搜索框显示/隐藏'>
-            <SearchOutlined style={iconStyle} onClick={() => {
-              setSearchFormShow(!searchFormShow);
-            }} />
-          </Tooltip>
-          <Tooltip placement="top" title='刷新'>
-            <ReloadOutlined style={iconStyle} onClick={handleTableReload} />
-          </Tooltip>
-          <ColumnShowTool
-            data={initShowColumn}
-            showColumns={showColumns}
-            setShowColumns={(keys: string[]) => { setShowColumns(keys) }}
-            solt={(<Tooltip placement="top" title='列设置'><SettingOutlined style={{ fontSize: '16px' }} /></Tooltip>)}
-          />
-        </div>
       </>
     )
-  }, [searchFormShow, showColumns, treeTableshow, rowKeys])
+  }, [])
+
+  /** toolbar icon  */
+  const iconStyle = { fontSize: '16px', marginRight: '15px' };
+  const treeTableIconRight = useMemo(() => {
+    const treeFunc = () => {
+      if (treeTableshow) {
+        setExpandedRowKeys(rowKeys);
+      } else {
+        setExpandedRowKeys([]);
+      }
+      setTreeTableshow(!treeTableshow)
+    }
+    return (<Tooltip placement="top" title='Tree Table 展开/隐藏'>
+      {treeTableshow ? <PlusSquareOutlined style={iconStyle} onClick={treeFunc} /> :
+        <MinusSquareOutlined style={iconStyle} onClick={treeFunc} />}
+    </Tooltip>
+    )
+  }, [treeTableshow, rowKeys])
+
+  const formShowIconRight = useMemo(() => {
+    return (<Tooltip placement="top" title='搜索框显示/隐藏'>
+      <SearchOutlined style={iconStyle} onClick={() => {
+        setSearchFormShow(!searchFormShow);
+      }} />
+    </Tooltip>)
+  }, [searchFormShow])
+
+  const reloadIconRight = useMemo(()=>{
+    return (<Tooltip placement="top" title='刷新'>
+    <ReloadOutlined style={iconStyle} onClick={handleTableReload} />
+  </Tooltip>)
+  },[loading])
+
+  const columnShowIconRight =useMemo(()=>{
+    return (<ColumnShowTool
+      data={initShowColumn}
+      showColumns={showColumns}
+      setShowColumns={(keys: string[]) => { setShowColumns(keys) }}
+      solt={(<Tooltip placement="top" title='列设置'><SettingOutlined style={{ fontSize: '16px' }} /></Tooltip>)}
+    />)
+  },[showColumns])
+
 
   const tableHtml = (
     <>
@@ -291,7 +307,15 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
             </div>
             <div className="header-toolbar">
               <div className="header-toolbar-left">{headerToolbarLeft}</div>
-              <div className="header-toolbar-right">{headerToolbarRight}</div>
+              <div className="header-toolbar-right">
+                {headerToolbarRight}
+                <div className='header-toolbar-right-items'>
+                  {treeTable ? treeTableIconRight : ""}
+                  {formShowIconRight}
+                  {reloadIconRight}
+                  {columnShowIconRight}
+                </div>
+              </div>
             </div>
           </div>
           <div className="ws-table-container">
@@ -302,12 +326,12 @@ const InternalWsTable: React.ForwardRefRenderFunction<any, WsTableProps> = (prop
                   setCheckedIds(selectedRowKeys);
                 }
               } : undefined}
-              columns={tableSetting.columns}
+              columns={tableColumn}
               dataSource={apiData}
               bordered={true}
               size={size}
               rowKey={rowKey}
-              scroll={tableSetting.tableScroll}
+              scroll={scroll}
               loading={loading}
               // expandRowByClick={true}
               onExpandedRowsChange={(expandedRows) => {

@@ -35,7 +35,6 @@ const momentDate = (momentObj: moment.MomentInput, type = 'date'): string => {
 
 /**解析form参数 */
 export const parseFormParamsTools = (params: { [key: string]: any } | undefined) => {
-  console.log('parseFormParamsTools', params);
   let newParams: { [key: string]: any } = {};
   for (let field in params) {
     let val: any = params[field];
@@ -45,7 +44,7 @@ export const parseFormParamsTools = (params: { [key: string]: any } | undefined)
       }
     } else if (field.indexOf('dateRange_') > -1) {
       if (val != "") {
-        newParams[field.replace('dateRange_', "")] = momentDate(val[0]) + '~' + momentDate(val[1]);
+        newParams[field.replace('dateRange_', "")] = [momentDate(val[0]) , momentDate(val[1])];
       }
     } else {
       if (!!$.trim(val)) {
